@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Alert,
   Pressable,
@@ -11,19 +11,34 @@ import {
 import { Modal, Text } from "react-native";
 import DatePicker from "react-native-modern-datepicker";
 
-const Formulario = ({
+const Form = ({
   modalVisible,
   setModalVisible,
   setPacientes,
   pacientes,
+  paciente,
 }) => {
+  const [id, setId] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [nombrePaciente, setNombrePaciente] = useState("");
   const [nombrePropietario, setNombrePropietario] = useState("");
   const [emailPropietario, setEmailPropietario] = useState("");
   const [telefonoPropietario, setTelefonoPropietario] = useState("");
   const [sintomas, setSintomas] = useState("");
+  useEffect(() => {
+    console.log(paciente);
+    if (Object.keys(paciente).length > 0) {
+      setId(paciente.id);
+      setSelectedDate(paciente.fecha);
+      setNombrePaciente(paciente.nombrePaciente);
+      setNombrePropietario(paciente.nombrePropietario);
+      setEmailPropietario(paciente.emailPropietario);
+      setTelefonoPropietario(paciente.telefonoPropietario);
+      setSintomas(paciente.sintomas);
+    }
+  }, [paciente]);
   const handleClose = () => {
+    setId("");
     setSelectedDate("");
     setNombrePaciente("");
     setNombrePropietario("");
@@ -45,7 +60,28 @@ const Formulario = ({
       Alert.alert("Todos los campos son obligatorios");
       return;
     }
+    if (id) {
+      const pacienteEdit = {
+        id,
+        nombrePaciente,
+        nombrePropietario,
+        emailPropietario,
+        telefonoPropietario,
+        sintomas,
+        fecha: selectedDate,
+      };
+      const pacientesEdit = pacientes.map((paciente) => {
+        if (paciente.id === id) {
+          return pacienteEdit;
+        }
+        return paciente;
+      });
+      setPacientes(pacientesEdit);
+      handleClose();
+      return;
+    }
     const paciente = {
+      id: Date.now(),
       nombrePaciente,
       nombrePropietario,
       emailPropietario,
@@ -61,7 +97,7 @@ const Formulario = ({
       <SafeAreaView style={styles.modal}>
         <ScrollView>
           <Text style={styles.title}>
-            Nueva {""} <Text style={styles.titleBold}>Cita</Text>
+            {id ? "Editar" : "Nueva"} <Text style={styles.titleBold}>Cita</Text>
           </Text>
           <Pressable style={styles.btnCancelar} onPress={handleClose}>
             <Text style={styles.btnCancelarText}>Cancelar</Text>
@@ -110,7 +146,18 @@ const Formulario = ({
           </View>
           <View style={styles.containerForm}>
             <Text style={styles.label}>Fecha Alta</Text>
-            <DatePicker onSelectedChange={(date) => setSelectedDate(date)} />
+            <DatePicker
+              options={{
+                textHeaderColor: "#6D28D9",
+                textDefaultColor: "#6D28D9",
+                selectedTextColor: "#fff",
+                mainColor: "#6D28D9",
+                textSecondaryColor: "#000",
+                borderColor: "rgba(122, 146, 165, 0.1)",
+              }}
+              style={{ borderRadius: 10 }}
+              onSelectedChange={(date) => setSelectedDate(date)}
+            />
           </View>
           <View style={styles.containerForm}>
             <Text style={styles.label}>Síntomas</Text>
@@ -125,7 +172,9 @@ const Formulario = ({
             />
           </View>
           <Pressable style={styles.btnNewCita} onPress={HandleCita}>
-            <Text style={styles.btnNewCitaText}>Agregar Paciente</Text>
+            <Text style={styles.btnNewCitaText}>
+              {id ? "Actualizar" : "Agregar"} Paciente
+            </Text>
           </Pressable>
         </ScrollView>
       </SafeAreaView>
@@ -195,4 +244,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Formulario;
+export default Form;

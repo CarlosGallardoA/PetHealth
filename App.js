@@ -7,11 +7,36 @@ import {
   StyleSheet,
   Text,
   View,
+  FlatList,
+  Alert,
 } from "react-native";
-import Formulario from "./src/components/Formulario";
+import Form from "./src/components/Form";
+import Patient from "./src/components/Patient";
 export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
   const [pacientes, setPacientes] = useState([]);
+  const [paciente, setPaciente] = useState({});
+  const pacienteEdit = (id) => {
+    const pacienteEdit = pacientes.filter((paciente) => paciente.id === id);
+    setPaciente(pacienteEdit[0]);
+  };
+  const deletePaciente = (id) => {
+    Alert.alert("Eliminar Paciente", "¿Estas seguro?", [
+      {
+        text: "Cancelar",
+        style: "cancel",
+      },
+      {
+        text: "Eliminar",
+        onPress: () => {
+          const pacientesFilter = pacientes.filter(
+            (paciente) => paciente.id !== id
+          );
+          setPacientes(pacientesFilter);
+        },
+      },
+    ]);
+  };
   const HandlePress = () => {
     setModalVisible(true);
   };
@@ -26,11 +51,29 @@ export default function App() {
           Nueva Cita
         </Text>
       </Pressable>
-      <Formulario
+      {pacientes.length > 0 ? (
+        <FlatList
+          style={styles.listStyle}
+          data={pacientes}
+          renderItem={({ item }) => (
+            <Patient
+              item={item}
+              setModalVisible={setModalVisible}
+              pacienteEdit={pacienteEdit}
+              deletePaciente={deletePaciente}
+            />
+          )}
+          keyExtractor={(item) => item.id}
+        />
+      ) : (
+        <Text style={styles.notCitas}>No hay Citas</Text>
+      )}
+      <Form
         modalVisible={modalVisible}
         setModalVisible={setModalVisible}
         setPacientes={setPacientes}
         pacientes={pacientes}
+        paciente={paciente}
       />
     </SafeAreaView>
   );
@@ -38,7 +81,6 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 30,
     backgroundColor: "#F3F4F6",
     flex: 1,
   },
@@ -65,5 +107,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 18,
     textTransform: "uppercase",
+  },
+  notCitas: {
+    marginTop: 40,
+    textAlign: "center",
+    fontSize: 24,
+    fontWeight: "600",
+  },
+  listStyle: {
+    marginTop: 50,
+    marginHorizontal: 30,
   },
 });
